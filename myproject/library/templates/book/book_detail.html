@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - 圖書詳情{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'library:home' %}">首頁</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'library:book_list' %}">圖書管理</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ book.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 圖書基本資訊 -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-book"></i> 圖書基本資訊
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">書名</h6>
+                        <h4>{{ book.title }}</h4>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">作者</h6>
+                        <p>{{ book.author }}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">ISBN</h6>
+                        <code>{{ book.isbn }}</code>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">出版商</h6>
+                        <p>{{ book.publisher }}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">分類</h6>
+                        <p>{{ book.category }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">建檔日期</h6>
+                        <p>{{ book.created_date|date:"Y-m-d H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 庫存狀況 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-warehouse"></i> 庫存狀況
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">總數量</h6>
+                        <h2 class="text-primary">{{ book.total_quantity }}</h2>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">可借用</h6>
+                        <h2 class="text-success">{{ book.available_quantity }}</h2>
+                    </div>
+                </div>
+                <hr>
+                <p class="text-center text-muted">
+                    已借出：{{ book.total_quantity|add:"-book.available_quantity" }} 本
+                </p>
+            </div>
+        </div>
+
+        <!-- 借閱歷史 -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-history"></i> 借閱歷史
+            </div>
+            <div class="card-body">
+                {% if borrow_records %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>會員</th>
+                                <th>借閱日期</th>
+                                <th>應還日期</th>
+                                <th>歸還日期</th>
+                                <th>狀態</th>
+                                <th>罰款</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in borrow_records %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'library:member_detail' record.member.pk %}">
+                                        {{ record.member.name }}
+                                    </a>
+                                </td>
+                                <td>{{ record.borrow_date|date:"Y-m-d" }}</td>
+                                <td>{{ record.due_date|date:"Y-m-d" }}</td>
+                                <td>
+                                    {% if record.return_date %}
+                                        {{ record.return_date|date:"Y-m-d" }}
+                                    {% else %}
+                                        <span class="text-muted">未還</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if record.status == 'borrowing' %}
+                                        <span class="badge bg-info">借閱中</span>
+                                    {% elif record.status == 'returned' %}
+                                        <span class="badge bg-success">已歸還</span>
+                                    {% elif record.status == 'overdue' %}
+                                        <span class="badge bg-danger">逾期</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if record.overdue_fine > 0 %}
+                                        <span class="badge bg-warning">NT$ {{ record.overdue_fine }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-inbox fa-2x mb-2 text-muted"></i>
+                    <p class="text-muted">暫無借閱記錄</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 側邊欄 - 操作按鈕 -->
+    <div class="col-md-4">
+        <!-- 管理員操作面板 -->
+        {% if request.user.is_staff %}
+        <div class="card sticky-top mb-3" style="top: 20px; z-index: 10;">
+            <div class="card-header">
+                <i class="fas fa-tools"></i> 管理員操作
+            </div>
+            <div class="card-body d-grid gap-2">
+                <a href="{% url 'library:book_edit' book.pk %}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> 編輯圖書資訊
+                </a>
+                <a href="{% url 'library:book_inventory' book.pk %}" class="btn btn-warning">
+                    <i class="fas fa-boxes"></i> 調整庫存
+                </a>
+                <form method="post" action="{% url 'library:book_toggle_status' book.pk %}">
+                    {% csrf_token %}
+                    {% if book.status == 'available' %}
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-arrow-down"></i> 下架此圖書
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-arrow-up"></i> 上架此圖書
+                        </button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <!-- 普通會員借閱面板 -->
+        {% if request.user.is_authenticated %}
+        <div class="card sticky-top mb-3" style="top: 20px; z-index: 10;">
+            <div class="card-header">
+                <i class="fas fa-book-reader"></i> 借閱
+            </div>
+            <div class="card-body">
+                {% if book.status == 'available' and book.available_quantity > 0 %}
+                    <p class="text-muted mb-3">此圖書可供借閱</p>
+                    <a href="{% url 'library:borrow_create' %}?book_id={{ book.pk }}" class="btn btn-success w-100">
+                        <i class="fas fa-plus-circle"></i> 借閱此圖書
+                    </a>
+                {% elif book.status == 'unavailable' %}
+                    <div class="alert alert-danger mb-0" role="alert">
+                        <i class="fas fa-times-circle"></i> 此圖書已下架
+                    </div>
+                {% elif book.available_quantity == 0 %}
+                    <div class="alert alert-warning mb-0" role="alert">
+                        <i class="fas fa-info-circle"></i> 暫無可借用的副本
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- 圖書狀態卡片 -->
+        <div class="card sticky-top" style="top: 380px; z-index: 5;">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> 圖書狀態
+            </div>
+            <div class="card-body">
+                <p><strong>當前狀態：</strong></p>
+                {% if book.status == 'available' %}
+                    <span class="badge bg-success" style="font-size: 1rem;">
+                        <i class="fas fa-check-circle"></i> 上架中
+                    </span>
+                {% else %}
+                    <span class="badge bg-danger" style="font-size: 1rem;">
+                        <i class="fas fa-times-circle"></i> 已下架
+                    </span>
+                {% endif %}
+                <hr>
+                <a href="{% url 'library:book_list' %}" class="btn btn-secondary w-100">
+                    <i class="fas fa-arrow-left"></i> 返回列表
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

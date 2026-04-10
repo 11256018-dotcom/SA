@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}首頁 - 圖書館管理系統{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- 歡迎 Hero 部分 -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card bg-light border-0 shadow-sm">
+                <div class="card-body p-5 text-center">
+                    <h1 class="card-title display-5 fw-bold mb-3">
+                        <i class="fas fa-book-open text-primary"></i> 圖書館管理系統
+                    </h1>
+                    {% if request.user.is_authenticated %}
+                        <p class="card-text lead text-muted mb-0">
+                            歡迎回來，<strong>{{ request.user.get_full_name|default:request.user.username }}</strong>！
+                        </p>
+                    {% else %}
+                        <p class="card-text lead text-muted">
+                            一個現代化、高效率的圖書館管理平台
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 內容區域 -->
+    <div class="row">
+        <!-- 訪客（未登入）部分 -->
+        {% if not request.user.is_authenticated %}
+            <div class="col-lg-8 mx-auto">
+                <div class="row g-4">
+                    <!-- 系統介紹 -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm hover-shadow transition">
+                            <div class="card-body text-center p-4">
+                                <div class="display-6 text-primary mb-3">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <h5 class="card-title">系統介紹</h5>
+                                <p class="card-text text-muted mb-3">
+                                    本系統提供完整的圖書館管理功能，包括圖書管理、會員管理、借閱記錄等。
+                                </p>
+                                <small class="text-muted">
+                                    <i class="fas fa-check-circle text-success"></i> 簡單易用<br>
+                                    <i class="fas fa-check-circle text-success"></i> 功能完整<br>
+                                    <i class="fas fa-check-circle text-success"></i> 安全可靠
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 快速開始 -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm hover-shadow transition">
+                            <div class="card-body text-center p-4">
+                                <div class="display-6 text-success mb-3">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <h5 class="card-title">快速開始</h5>
+                                <p class="card-text text-muted mb-4">
+                                    選擇下面的選項，開始使用本平台
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'library:register' %}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-user-plus"></i> 新會員註冊
+                                    </a>
+                                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg">
+                                        <i class="fas fa-sign-in-alt"></i> 會員登入
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 功能預覽 -->
+                <div class="row g-4 mt-4">
+                    <div class="col-12">
+                        <h3 class="mb-4">
+                            <i class="fas fa-star text-warning"></i> 主要功能
+                        </h3>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <div class="h3 text-primary mb-2">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <h6 class="card-title">圖書管理</h6>
+                                <p class="card-text small text-muted">
+                                    查看館藏並進行借閱
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <div class="h3 text-info mb-2">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                                <h6 class="card-title">借閱管理</h6>
+                                <p class="card-text small text-muted">
+                                    管理借閱和歸還記錄
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <div class="h3 text-success mb-2">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                                <h6 class="card-title">統計報表</h6>
+                                <p class="card-text small text-muted">
+                                    查看詳細的借閱統計
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <!-- 會員（已登入，非管理員）部分 -->
+        {% elif not request.user.is_staff %}
+            <div class="col-lg-10 mx-auto">
+                <h2 class="mb-4">
+                    <i class="fas fa-tachometer-alt"></i> 會員中心
+                </h2>
+
+                <div class="row g-4 mb-5">
+                    <!-- 我的借閱 -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm hover-shadow transition">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="h3 text-primary mb-0">
+                                        <i class="fas fa-bookmark"></i>
+                                    </div>
+                                    <h5 class="card-title ms-3 mb-0">我的借閱</h5>
+                                </div>
+                                <p class="card-text text-muted mb-4">
+                                    查看和管理您的借閱記錄
+                                </p>
+                                <a href="{% url 'library:my_borrows' %}" class="btn btn-primary">
+                                    <i class="fas fa-list"></i> 查看借閱清單
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 搜尋圖書 -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm hover-shadow transition">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="h3 text-success mb-0">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <h5 class="card-title ms-3 mb-0">搜尋圖書</h5>
+                                </div>
+                                <p class="card-text text-muted mb-4">
+                                    在館藏中搜尋您感興趣的圖書
+                                </p>
+                                <a href="{% url 'library:search_book' %}" class="btn btn-success">
+                                    <i class="fas fa-search"></i> 搜尋圖書
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- 查看館藏 -->
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="h2 text-warning mb-3">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <h6 class="card-title">查看館藏</h6>
+                                <p class="card-text small text-muted mb-3">
+                                    瀏覽所有可用圖書
+                                </p>
+                                <a href="{% url 'library:book_list' %}" class="btn btn-sm btn-outline-warning">
+                                    查看圖書
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 個人資料 -->
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="h2 text-secondary mb-3">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <h6 class="card-title">個人資料</h6>
+                                <p class="card-text small text-muted mb-3">
+                                    管理您的個人檔案
+                                </p>
+                                {% if request.user.member_profile %}
+                                    <a href="{% url 'library:member_detail' request.user.member_profile.id %}" class="btn btn-sm btn-outline-secondary">
+                                        查看資料
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        <i class="fas fa-info-circle"></i> 無會員資料
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <!-- 管理員部分 -->
+        {% else %}
+            <div class="col-lg-10 mx-auto">
+                <h2 class="mb-4">
+                    <i class="fas fa-cogs"></i> 管理員面板
+                </h2>
+
+                <div class="row g-4 mb-5">
+                    <!-- 系統管理 -->
+                    <div class="col-lg-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-cogs"></i> 系統管理
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group list-group-flush">
+                                    <a href="{% url 'library:book_list' %}" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-book"></i> 圖書管理
+                                    </a>
+                                    <a href="{% url 'library:member_list' %}" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-users"></i> 會員管理
+                                    </a>
+                                    <a href="{% url 'library:borrow_create' %}" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-handshake"></i> 借閱與還書
+                                    </a>
+                                    <a href="/admin/" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-lock"></i> Django 後台管理
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 報表與統計 -->
+                    <div class="col-lg-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-chart-bar"></i> 報表與統計
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group list-group-flush">
+                                    <a href="{% url 'library:inventory_dashboard' %}" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-chart-pie"></i> 館藏統計報表
+                                    </a>
+                                    <a href="{% url 'library:borrow_ranking' %}" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-trophy"></i> 借閱排行榜
+                                    </a>
+                                    <a href="{% url 'library:borrow_report' %}" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-list"></i> 借閱/逾期清單
+                                    </a>
+                                    <a href="{% url 'library:search_book' %}" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-search"></i> 搜尋圖書
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快速統計 -->
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center">
+                            <div class="card-body">
+                                <div class="h3 text-primary mb-2">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <h6 class="card-title">圖書管理</h6>
+                                <p class="card-text small text-muted">
+                                    管理全部圖書資訊
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center">
+                            <div class="card-body">
+                                <div class="h3 text-success mb-2">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <h6 class="card-title">會員管理</h6>
+                                <p class="card-text small text-muted">
+                                    監督會員帳戶
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center">
+                            <div class="card-body">
+                                <div class="h3 text-warning mb-2">
+                                    <i class="fas fa-sync"></i>
+                                </div>
+                                <h6 class="card-title">借閱管理</h6>
+                                <p class="card-text small text-muted">
+                                    處理借閱還書
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm text-center">
+                            <div class="card-body">
+                                <div class="h3 text-info mb-2">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <h6 class="card-title">統計分析</h6>
+                                <p class="card-text small text-muted">
+                                    查看各類統計報表
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .hover-shadow {
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-2px);
+    }
+
+    .transition {
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-light:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+</style>
+{% endblock %}

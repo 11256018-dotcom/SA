@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}還書搜尋 - 圖書借閱系統{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1 class="page-title">
+            <i class="fas fa-search"></i> 還書搜尋
+        </h1>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-undo"></i> 查詢待還紀錄
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <!-- 搜尋方式 -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <strong>搜尋方式</strong> <span class="text-danger">*</span>
+                        </label>
+                        <div class="card">
+                            <div class="card-body">
+                                {% for radio in form.search_type %}
+                                <div class="form-check mb-3">
+                                    {{ radio.tag }}
+                                    <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                        {{ radio.choice_label }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% if form.search_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.search_type.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+
+                    <!-- 動態搜尋字段 -->
+                    <div class="mb-4">
+                        <div id="record-id-field" class="search-field">
+                            <label for="id_record_id" class="form-label">借閱紀錄 ID</label>
+                            {{ form.record_id }}
+                            {% if form.record_id.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.record_id.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div id="isbn-field" class="search-field d-none">
+                            <label for="id_isbn" class="form-label">圖書 ISBN</label>
+                            {{ form.isbn }}
+                            {% if form.isbn.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.isbn.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div id="member-isbn-field" class="search-field d-none">
+                            <label for="id_member_name" class="form-label">會員名稱</label>
+                            {{ form.member_name }}
+                            {% if form.member_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.member_name.errors.0 }}
+                                </div>
+                            {% endif %}
+
+                            <label for="id_isbn" class="form-label mt-3">圖書 ISBN</label>
+                            {{ form.isbn }}
+                            {% if form.isbn.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.isbn.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- 非字段表單錯誤 -->
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>校驗失敗：</strong>
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- 提交按鈕 -->
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-search"></i> 搜尋記錄
+                        </button>
+                        <a href="{% url 'library:home' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> 返回首頁
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 提示卡片 -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="fas fa-lightbulb"></i> 幫助
+            </div>
+            <div class="card-body">
+                <h6>搜尋方式說明：</h6>
+                <ul>
+                    <li><strong>借閱紀錄 ID：</strong> 直接輸入借閱紀錄的 ID 號碼（最快速）</li>
+                    <li><strong>圖書 ISBN：</strong> 掃描或輸入圖書的 ISBN 條碼</li>
+                    <li><strong>會員名稱 + ISBN：</strong> 當同一本書被多人借出時，可通過會員名稱和 ISBN 精確定位</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 根據選擇的搜尋方式顯示/隱藏對應的輸入字段
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchTypeRadios = document.querySelectorAll('input[name="search_type"]');
+        
+        function updateFieldVisibility() {
+            const selectedType = document.querySelector('input[name="search_type"]:checked').value;
+            
+            document.querySelectorAll('.search-field').forEach(field => {
+                field.classList.add('d-none');
+            });
+            
+            if (selectedType === 'record_id') {
+                document.getElementById('record-id-field').classList.remove('d-none');
+            } else if (selectedType === 'isbn') {
+                document.getElementById('isbn-field').classList.remove('d-none');
+            } else if (selectedType === 'member_isbn') {
+                document.getElementById('member-isbn-field').classList.remove('d-none');
+            }
+        }
+        
+        searchTypeRadios.forEach(radio => {
+            radio.addEventListener('change', updateFieldVisibility);
+        });
+        
+        // 初始化
+        updateFieldVisibility();
+    });
+</script>
+{% endblock %}
